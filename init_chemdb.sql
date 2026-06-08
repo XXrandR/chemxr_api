@@ -130,7 +130,7 @@ CREATE TABLE app.academic_categories (
     name VARCHAR(150) NOT NULL,
     description VARCHAR(300),
     level SMALLINT,
-    parent_id UUID,
+    course_id UUID,
     color CHAR(6),
     icon_id UUID,
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
@@ -138,7 +138,7 @@ CREATE TABLE app.academic_categories (
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_by UUID,
     updated_at TIMESTAMPTZ,
-    CONSTRAINT fk_cat_parent FOREIGN KEY (parent_id) REFERENCES app.academic_categories(id) ON DELETE RESTRICT,
+    CONSTRAINT fk_cat_course FOREIGN KEY (course_id) REFERENCES app.courses(id) ON DELETE RESTRICT,
     CONSTRAINT fk_cat_icon FOREIGN KEY (icon_id) REFERENCES app.icons(id) ON DELETE SET NULL
 );
 
@@ -177,6 +177,7 @@ CREATE TABLE app.people (
     country_id UUID,
     district_id UUID,
     gender SMALLINT,
+    phone_number VARCHAR(16) NOT NULL,
     birth_date DATE,
     created_by UUID,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -380,7 +381,7 @@ CREATE TABLE app.course_members (
 /*      INDICES     */
 CREATE INDEX idx_prov_department_id ON app.provinces(department_id);
 CREATE INDEX idx_dist_province_id ON app.districts(province_id);
-CREATE INDEX idx_categories_parent_id ON app.academic_categories(parent_id);
+CREATE INDEX idx_categories_parent_id ON app.academic_categories(course_id);
 CREATE INDEX idx_categories_icon_id ON app.academic_categories(icon_id);
 CREATE INDEX idx_tags_icon_id ON app.academic_tags(icon_id);
 CREATE INDEX idx_people_country_id ON app.people(country_id);
