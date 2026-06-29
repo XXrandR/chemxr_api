@@ -457,7 +457,7 @@ COMMENT ON TABLE app.course_members IS 'Members enrolled in a course with their 
 
 
 /*   SCHEMA AUTH    */
-CREATE TABLE auth.client (
+CREATE TABLE auth.oauth2_registered_client (
     id VARCHAR(255) PRIMARY KEY,
     client_id VARCHAR(255) NOT NULL,
     client_id_issued_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -473,7 +473,7 @@ CREATE TABLE auth.client (
     token_settings VARCHAR(2000) NOT NULL
 );
 
-CREATE TABLE auth.authorization (
+CREATE TABLE auth.oauth2_authorization (
     id VARCHAR(255) PRIMARY KEY,
     registered_client_id VARCHAR(255) NOT NULL,
     principal_name VARCHAR(255) NOT NULL,
@@ -510,7 +510,7 @@ CREATE TABLE auth.authorization (
     device_code_metadata VARCHAR(2000)
 );
 
-CREATE TABLE auth.authorization_consent (
+CREATE TABLE auth.oauth2_authorization_consent (
     registered_client_id VARCHAR(255) NOT NULL,
     principal_name VARCHAR(255) NOT NULL,
     authorities VARCHAR(1000) NOT NULL,
