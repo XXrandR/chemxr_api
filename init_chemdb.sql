@@ -408,6 +408,30 @@ CREATE TABLE course_members (
 );
 
 -- ============================================================
+-- 27. registrations
+-- Signup requests / audit log for new user registrations
+-- ============================================================
+CREATE TABLE registrations (
+    id UUID PRIMARY KEY,
+    person_id UUID,                       -- Created person record (optional until processed)
+    user_id UUID,                         -- Created user account (optional until processed)
+    username VARCHAR(10) NOT NULL,        -- Desired login username
+    email VARCHAR(255) NOT NULL,          -- Contact email
+    phone VARCHAR(20),                    -- Optional phone number
+    first_name VARCHAR(40) NOT NULL,      -- Person's first name
+    last_name VARCHAR(40) NOT NULL,       -- Person's last name
+    status VARCHAR(20) NOT NULL DEFAULT 'PENDING', -- PENDING | APPROVED | REJECTED
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    processed_at TIMESTAMPTZ,
+    processed_by UUID,                    -- Admin user who approved/rejected the request
+    CONSTRAINT uq_reg_username UNIQUE (username),
+    CONSTRAINT uq_reg_email UNIQUE (email),
+    CONSTRAINT fk_reg_person FOREIGN KEY (person_id) REFERENCES people(id) ON DELETE SET NULL,
+    CONSTRAINT fk_reg_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL,
+    CONSTRAINT fk_reg_processed_by FOREIGN KEY (processed_by) REFERENCES users(id) ON DELETE SET NULL
+);
+
+-- ============================================================
 -- PERFORMANCE INDEXES (UUID columns need indexes for FKs)
 -- ============================================================
 CREATE INDEX idx_prov_department_id ON provinces(department_id);
@@ -458,6 +482,10 @@ CREATE INDEX idx_scenes_updated_by ON ar_vr_scenes(updated_by);
 CREATE INDEX idx_members_user_id ON course_members(user_id);
 CREATE INDEX idx_members_role_id ON course_members(role_id);
 CREATE INDEX idx_members_created_by ON course_members(created_by);
+CREATE INDEX idx_reg_email ON registrations(email);
+CREATE INDEX idx_reg_status ON registrations(status);
+CREATE INDEX idx_reg_person_id ON registrations(person_id);
+CREATE INDEX idx_reg_user_id ON registrations(user_id);
 
 -- ============================================================
 -- OPTIONAL: Comments for documentation
@@ -488,3 +516,4 @@ COMMENT ON TABLE resources IS 'Reusable academic resources (files, links, videos
 COMMENT ON TABLE resource_assignments IS 'Polymorphic assignment of resources to courses/modules/elements';
 COMMENT ON TABLE ar_vr_scenes IS 'AR/VR scene metadata linked to a resource';
 COMMENT ON TABLE course_members IS 'Members enrolled in a course with their roles';
+COMMENT ON TABLE registrations IS 'Signup requests and audit log for new user registrations';
