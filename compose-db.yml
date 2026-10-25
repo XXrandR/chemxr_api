@@ -1,22 +1,23 @@
+# PostgreSQL local - Flyway crea las tablas cuando inicia Spring Boot.
+# No se monta init_chemdb.sql: evita inicializaciones competidoras.
 services:
   main_db:
-    image: postgres:latest
+    image: postgres:17
     container_name: chemdb
     environment:
       TZ: America/Lima
-      POSTGRES_USER: maximus
-      POSTGRES_PASSWORD: MaximusTheGreat50
-      POSTGRES_DB: chemdb
+      POSTGRES_USER: ${CHEMXR_DB_USER:-maximus}
+      POSTGRES_PASSWORD: ${CHEMXR_DB_PASSWORD:?Define CHEMXR_DB_PASSWORD en .env}
+      POSTGRES_DB: ${CHEMXR_DB_NAME:-chemdb}
     ports:
-      - "5435:5432"
+      - "${CHEMXR_DB_PORT:-5435}:5432"
     volumes:
-      #- /home/cisco/postgres-data:/var/lib/postgresql/data
-      - ./init_chemdb.sql:/docker-entrypoint-initdb.d/init.sql
+      - chemxr_pgdata:/var/lib/postgresql/data
     networks:
       - unrd_subway
-    restart: always
+    restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U maximus -d chemdb"]
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -27,5 +28,5 @@ networks:
     driver: bridge
 
 volumes:
-  postgres-data: # for this give the permissions(sudo chown -R 1000:1000 ./es-data,sudo chmod -R 755 ./es-data)
+  chemxr_pgdata:
     driver: local
