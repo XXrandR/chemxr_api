@@ -1,0 +1,28 @@
+# Configuracion de sqlfluff para chemxr_api (migraciones Flyway PostgreSQL)
+#
+# Principio rector: las migraciones YA APLICADAS no se re-formatean nunca mas
+# (Flyway valida checksums: cambiar un byte de V1 rompe 'validate-on-migrate').
+# Por eso las reglas de estilo que chocan con el seed/DDL ya commiteado se
+# excluyen aqui CON JUSTIFICACION, y siguen activas para detectar problemas
+# reales (sintaxis, referencias) en migraciones nuevas.
+#
+# El paso de CI del reusable genera esta config solo si el repo NO tiene
+# .sqlfluff; al existir este archivo, el repo manda.
+
+[sqlfluff]
+dialect = postgres
+
+# Lint completo de migraciones grandes (sqlfluff omite >20KB y >100k nodos por defecto).
+large_file_skip_byte_limit = 0
+max_parse_nodes = 0
+
+# Reglas excluidas por chocar con el estilo del seed generado y ser inmutables
+# (contadores medidos sobre V1__create_chemxr_app.sql, sqlfluff 4.4.0):
+#   RF06 (17501) identificadores citados "app"."tabla": convencion defensiva del DDL generado.
+#   LT05 (3710)  lineas largas en INSERTs de datos seed.
+#   LT01 (1518)  espaciado compacto tras coma en VALUES de seed.
+#   CP03 (204), CP05 (46), CP04 (5): capitalizacion de funciones/tipos/literales del DDL heredado.
+#   LT12 (1)     newline final faltante en V1 (corregirlo cambiaria su checksum).
+# Reglas que SIGUEN activas y utiles en migraciones nuevas: errores de parseo,
+# RF01/RF02/RF03 (referencias), LT09 (select targets), ST05 (subqueries), etc.
+exclude_rules = RF06, LT05, LT01, CP03, CP05, CP04, LT12

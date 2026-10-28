@@ -33,74 +33,75 @@ jobs:
           sql-paths: src/main/resources/db/migration
           dialect: postgres
           fail-on-error: "true"
-  sonarcloud:
-    name: Build and Analyze
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
-        with:
-          fetch-depth: 0
 
-      - name: Set up JDK 25
-        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad
-        with:
-          distribution: temurin
-          java-version: 25
-          cache: gradle
+sonarcloud:
+  name: Build and Analyze
+  runs-on: ubuntu-latest
+  steps:
+    - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      with:
+        fetch-depth: 0
 
-      - name: Start database (reusable multi-motor SQL)
-        uses: DevSecOps-Engineer-Org/reusable-workflows/actions/multi-motor-sql@v1.0.0
-        with:
-          engine: postgres
-          db-name: ${{ github.event.inputs.db_name }}
-          db-user: ${{ github.event.inputs.db_user }}
-          db-password: ci_db_password
+    - name: Set up JDK 25
+      uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad
+      with:
+        distribution: temurin
+        java-version: 25
+        cache: gradle
 
-      - name: Run tests with coverage
-        env:
-          CHEMXR_DB_HOST: localhost
-          CHEMXR_DB_PORT: 5432
-          CHEMXR_DB_NAME: ${{ github.event.inputs.db_name }}
-          CHEMXR_DB_USER: ${{ github.event.inputs.db_user }}
-          CHEMXR_DB_PASSWORD: ci_db_password
-        run: ./gradlew test jacocoTestReport --no-daemon
+    - name: Start database (reusable multi-motor SQL)
+      uses: DevSecOps-Engineer-Org/reusable-workflows/actions/multi-motor-sql@v1.0.0
+      with:
+        engine: postgres
+        db-name: ${{ github.event.inputs.db_name }}
+        db-user: ${{ github.event.inputs.db_user }}
+        db-password: ci_db_password
 
-      - name: Generate build timestamp
-        id: timestamp
-        run: echo "ts=$(date +'%Y%m%d%H%M%S')" >> "$GITHUB_OUTPUT"
+    - name: Run tests with coverage
+      env:
+        CHEMXR_DB_HOST: localhost
+        CHEMXR_DB_PORT: 5432
+        CHEMXR_DB_NAME: ${{ github.event.inputs.db_name }}
+        CHEMXR_DB_USER: ${{ github.event.inputs.db_user }}
+        CHEMXR_DB_PASSWORD: ci_db_password
+      run: ./gradlew test jacocoTestReport --no-daemon
 
-      - name: SonarQube Scan
-        uses: DevSecOps-Engineer-Org/reusable-workflows/actions/qa-sonar@v1.0.0
-        with:
-          app-name: chemxr_api
-          project-key: ${{ github.event.inputs.project_key }}
-          organization: ${{ github.event.inputs.organization }}
-          tek: gradle
-          build-timestamp: ${{ steps.timestamp.outputs.ts }}
-          java-binaries: build/classes/java/main
-          coverage-path: build/reports/jacoco/test/jacocoTestReport.xml
-          coverage-tool: jacoco
-          sources: src/main/java
-          tests: src/test/java
-          sonar-url: ${{ vars.SONAR_HOST_URL || 'https://sonarcloud.io' }}
-          sonar-token: ${{ secrets.SONAR_TOKEN }}
+    - name: Generate build timestamp
+      id: timestamp
+      run: echo "ts=$(date +'%Y%m%d%H%M%S')" >> "$GITHUB_OUTPUT"
 
-      - name: Print Quality Gate & Coverage Results
-        if: always()
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ vars.SONAR_HOST_URL }}
-          PROJECT_KEY: ${{ github.event.inputs.project_key }}
-        run: |
-          echo "=== SonarCloud Project Status ==="
-          RESPONSE=$(curl -s -u "${SONAR_TOKEN}:" \
-            "${SONAR_HOST_URL}/api/qualitygates/project_status?projectKey=${PROJECT_KEY}")
-          [ -z "$RESPONSE" ] && RESPONSE='{"errors":[{"msg":"sin respuesta (¿SONAR_TOKEN/SONAR_HOST_URL configurados?)"}]}'
-          echo "$RESPONSE" | jq -r '
-            if .projectStatus then
-              .projectStatus
-              | "Status: " + .status,
-                (.conditions[]? | "- " + .metricKey + ": " + (.actualValue|tostring) + " (threshold " + (.errorThreshold|tostring) + ") -> " + .status)
-            else
-              "No se pudo obtener el Quality Gate: " + ((.errors[0].msg // .)|tostring)
-            end'
+    - name: SonarQube Scan
+      uses: DevSecOps-Engineer-Org/reusable-workflows/actions/qa-sonar@v1.0.0
+      with:
+        app-name: chemxr_api
+        project-key: ${{ github.event.inputs.project_key }}
+        organization: ${{ github.event.inputs.organization }}
+        tek: gradle
+        build-timestamp: ${{ steps.timestamp.outputs.ts }}
+        java-binaries: build/classes/java/main
+        coverage-path: build/reports/jacoco/test/jacocoTestReport.xml
+        coverage-tool: jacoco
+        sources: src/main/java
+        tests: src/test/java
+        sonar-url: ${{ vars.SONAR_HOST_URL || 'https://sonarcloud.io' }}
+        sonar-token: ${{ secrets.SONAR_TOKEN }}
+
+    - name: Print Quality Gate & Coverage Results
+      if: always()
+      env:
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        SONAR_HOST_URL: ${{ vars.SONAR_HOST_URL }}
+        PROJECT_KEY: ${{ github.event.inputs.project_key }}
+      run: |
+        echo "=== SonarCloud Project Status ==="
+        RESPONSE=$(curl -s -u "${SONAR_TOKEN}:" \
+          "${SONAR_HOST_URL}/api/qualitygates/project_status?projectKey=${PROJECT_KEY}")
+        [ -z "$RESPONSE" ] && RESPONSE='{"errors":[{"msg":"sin respuesta (¿SONAR_TOKEN/SONAR_HOST_URL configurados?)"}]}'
+        echo "$RESPONSE" | jq -r '
+          if .projectStatus then
+            .projectStatus
+            | "Status: " + .status,
+              (.conditions[]? | "- " + .metricKey + ": " + (.actualValue|tostring) + " (threshold " + (.errorThreshold|tostring) + ") -> " + .status)
+          else
+            "No se pudo obtener el Quality Gate: " + ((.errors[0].msg // .)|tostring)
+          end'
