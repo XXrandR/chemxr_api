@@ -6,7 +6,7 @@ on:
       project_key:
         description: "Project Key"
         required: true
-        default: "chemxr_api"
+        default: "XXrandR_chemxr_api"
       organization:
         description: "Organization Key"
         required: true
