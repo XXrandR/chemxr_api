@@ -9,12 +9,12 @@
 # El paso de CI del reusable genera esta config solo si el repo NO tiene
 # .sqlfluff; al existir este archivo, el repo manda.
 
-#[sqlfluff]
-#dialect = postgres
+[sqlfluff]
+dialect = postgres
 
 # Lint completo de migraciones grandes (sqlfluff omite >20KB y >100k nodos por defecto).
-#large_file_skip_byte_limit = 0
-#max_parse_nodes = 0
+large_file_skip_byte_limit = 0
+max_parse_nodes = 0
 
 # Reglas excluidas por chocar con el estilo del seed generado y ser inmutables
 # (contadores medidos sobre V1__create_chemxr_app.sql, sqlfluff 4.4.0):
