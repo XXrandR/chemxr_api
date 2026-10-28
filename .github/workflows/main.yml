@@ -21,6 +21,18 @@ on:
         default: "maximus"
 
 jobs:
+  sql-lint:
+    name: SQL Lint (migraciones)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+
+      - name: Lint SQL
+        uses: DevSecOps-Engineer-Org/reusable-workflows/actions/sql-lint@v1.0.0
+        with:
+          sql-paths: src/main/resources/db/migration
+          dialect: postgres
+          fail-on-error: "true"
   sonarcloud:
     name: Build and Analyze
     runs-on: ubuntu-latest
