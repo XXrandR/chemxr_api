@@ -25,4 +25,4 @@ max_parse_nodes = 0
 #   LT12 (1)     newline final faltante en V1 (corregirlo cambiaria su checksum).
 # Reglas que SIGUEN activas y utiles en migraciones nuevas: errores de parseo,
 # RF01/RF02/RF03 (referencias), LT09 (select targets), ST05 (subqueries), etc.
-#exclude_rules = RF06, LT05, LT01, CP03, CP05, CP04, LT12
+exclude_rules =
